@@ -3,6 +3,7 @@
 //! [paths]: https://spec.openapis.org/oas/latest.html#paths-object
 use std::iter;
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -10,7 +11,8 @@ use super::{
     builder,
     request_body::RequestBody,
     response::{Response, Responses},
-    set_value, Deprecated, ExternalDocs, RefOr, Required, Schema, SecurityRequirement, Server,
+    set_value, Content, Deprecated, ExternalDocs, RefOr, Required, Schema, SecurityRequirement,
+    Server,
 };
 
 #[cfg(not(feature = "preserve_path_order"))]
@@ -476,6 +478,9 @@ builder! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub schema: Option<RefOr<Schema>>,
 
+        #[serde(skip_serializing_if = "IndexMap::is_empty", default)]
+        pub content: IndexMap<String, Content>,
+
         /// Describes how [`Parameter`] is being serialized depending on [`Parameter::schema`] (type of a content).
         /// Default value is based on [`ParameterIn`].
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -556,6 +561,13 @@ impl ParameterBuilder {
     /// Add or change [`Parameter`]s schema.
     pub fn schema<I: Into<RefOr<Schema>>>(mut self, component: Option<I>) -> Self {
         set_value!(self schema component.map(|component| component.into()))
+    }
+
+    /// Add [`Content`] of the [`Response`] with content type e.g `application/json`.
+    pub fn content<S: Into<String>>(mut self, content_type: S, content: Content) -> Self {
+        self.content.insert(content_type.into(), content);
+
+        self
     }
 
     /// Add or change serialization style of [`Parameter`].
