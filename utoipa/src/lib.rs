@@ -934,6 +934,8 @@ mod tests {
     #[cfg(not(feature = "non_strict_integers"))]
     #[test]
     fn test_partial_schema_strict_integers() {
+        use assert_json_diff::{assert_json_matches, CompareMode, Config, NumericMode};
+
         for (name, schema, value) in [
             (
                 "i8",
@@ -983,7 +985,9 @@ mod tests {
                 json = serde_json::to_string(&schema).unwrap()
             );
             let schema = serde_json::to_value(schema).unwrap();
-            assert_json_eq!(schema, value);
+
+            let config = Config::new(CompareMode::Strict).numeric_mode(NumericMode::AssumeFloat);
+            assert_json_matches!(schema, value, config);
         }
     }
 
@@ -1016,22 +1020,22 @@ mod tests {
             (
                 "u8",
                 u8::schema(),
-                json!({"type": "integer", "format": "uint8", "minimum": 0.0}),
+                json!({"type": "integer", "format": "uint8", "minimum": 0}),
             ),
             (
                 "u16",
                 u16::schema(),
-                json!({"type": "integer", "format": "uint16", "minimum": 0.0}),
+                json!({"type": "integer", "format": "uint16", "minimum": 0}),
             ),
             (
                 "u32",
                 u32::schema(),
-                json!({"type": "integer", "format": "uint32", "minimum": 0.0}),
+                json!({"type": "integer", "format": "uint32", "minimum": 0}),
             ),
             (
                 "u64",
                 u64::schema(),
-                json!({"type": "integer", "format": "uint64", "minimum": 0.0}),
+                json!({"type": "integer", "format": "uint64", "minimum": 0}),
             ),
         ] {
             println!(

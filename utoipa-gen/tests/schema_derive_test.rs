@@ -1,6 +1,6 @@
 use std::{borrow::Cow, cell::RefCell, collections::HashMap, marker::PhantomData, vec};
 
-use assert_json_diff::assert_json_eq;
+use assert_json_diff::{assert_json_eq, assert_json_matches, CompareMode, Config, NumericMode};
 use serde::Serialize;
 use serde_json::{json, Value};
 use utoipa::openapi::{Object, ObjectBuilder};
@@ -3825,8 +3825,10 @@ fn derive_struct_with_validation_fields() {
         }
     };
 
+    let config = Config::new(CompareMode::Strict).numeric_mode(NumericMode::AssumeFloat);
+
     #[cfg(feature = "non_strict_integers")]
-    assert_json_eq!(
+    assert_json_matches!(
         value,
         json!({
             "properties": {
@@ -3862,11 +3864,6 @@ fn derive_struct_with_validation_fields() {
                     "format": "uint32",
                     "minimum": 2.0,
                 }
-                "unsigned_value": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 2.0,
-                }
             },
             "type": "object",
             "required": [
@@ -3876,11 +3873,12 @@ fn derive_struct_with_validation_fields() {
                 "unsigned",
                 "unsigned_value"
             ]
-        })
+        }),
+        config
     );
 
     #[cfg(not(feature = "non_strict_integers"))]
-    assert_json_eq!(
+    assert_json_matches!(
         value,
         json!({
             "properties": {
@@ -3925,7 +3923,8 @@ fn derive_struct_with_validation_fields() {
                 "unsigned",
                 "unsigned_value"
             ]
-        })
+        }),
+        config
     );
 }
 
@@ -4101,7 +4100,9 @@ fn derive_schema_with_generics_and_lifetimes() {
         }
     };
 
-    assert_json_eq!(
+    let config = Config::new(CompareMode::Strict).numeric_mode(NumericMode::AssumeFloat);
+
+    assert_json_matches!(
         value,
         json!([
             [
@@ -4164,7 +4165,8 @@ fn derive_schema_with_generics_and_lifetimes() {
                     "type": "object"
                 }
             ]
-        ])
+        ]),
+        config
     )
 }
 
